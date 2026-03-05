@@ -2,7 +2,7 @@
 
 A production-ready, full-stack AI chat application powered by Cloudflare Workers and Agents. Features multi-session conversations, streaming responses, tool calling (weather, web search, and extensible MCP tools), and model switching with Gemini models via Cloudflare AI Gateway.
 
-[![Deploy to Cloudflare][cloudflarebutton]]
+[![Deploy to Cloudflare][![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/bilbywilby/generated-app-20260305-070636)]
 
 ## ✨ Features
 
@@ -119,7 +119,7 @@ wrangler deploy  # Deploy worker + assets
 
 Or use the one-click deploy:
 
-[cloudflarebutton]
+[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/bilbywilby/generated-app-20260305-070636)
 
 **Post-Deploy**:
 1. Bind custom domain or use `*.workers.dev`.
