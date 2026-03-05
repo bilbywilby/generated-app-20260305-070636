@@ -19,17 +19,15 @@ export interface Draft {
   updatedAt: number;
 }
 export class AppController extends DurableObject<Env> {
-  constructor(ctx: DurableObjectState, env: Env) {
+  constructor(ctx: any, env: Env) {
     super(ctx, env);
   }
-  // Generic list/get/put helpers
   private async getList<T>(key: string): Promise<T[]> {
-    return await this.ctx.storage.get<T[]>(key) || [];
+    return await (this as any).ctx.storage.get<T[]>(key) || [];
   }
   private async saveList<T>(key: string, items: T[]): Promise<void> {
-    await this.ctx.storage.put(key, items);
+    await (this as any).ctx.storage.put(key, items);
   }
-  // --- Session Management ---
   async addSession(sessionId: string, title?: string): Promise<void> {
     const sessions = await this.getList<SessionInfo>('sessions');
     const existing = sessions.find(s => s.id === sessionId);
@@ -75,10 +73,9 @@ export class AppController extends DurableObject<Env> {
   async clearAllSessions(): Promise<number> {
     const sessions = await this.getList<SessionInfo>('sessions');
     const count = sessions.length;
-    await this.ctx.storage.delete('sessions');
+    await (this as any).ctx.storage.delete('sessions');
     return count;
   }
-  // --- Template Management ---
   async createTemplate(template: Omit<Template, 'id' | 'updatedAt'>): Promise<Template> {
     const templates = await this.getList<Template>('templates');
     const newTemplate: Template = {
@@ -108,7 +105,6 @@ export class AppController extends DurableObject<Env> {
     await this.saveList('templates', filtered);
     return true;
   }
-  // --- Draft Management ---
   async createDraft(draft: Omit<Draft, 'id' | 'updatedAt'>): Promise<Draft> {
     const drafts = await this.getList<Draft>('drafts');
     const newDraft: Draft = {

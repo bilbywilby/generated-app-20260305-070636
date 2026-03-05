@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Patrick+Hand&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Patrick+Hand&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -8,11 +8,11 @@
     --foreground: 224 71% 4%;
     --primary: 243 75% 59%;
     --primary-foreground: 0 0% 100%;
-    --muted: 220 14% 90%;
+    --muted: 220 14% 92%;
     --muted-foreground: 220 9% 46%;
     --border: 220 13% 91%;
     --ring: 243 75% 59%;
-    --radius: 1rem;
+    --radius: 1.5rem;
     --accent: 14 91% 63%;
     --accent-foreground: 0 0% 100%;
   }
@@ -28,6 +28,7 @@
   }
   * {
     @apply border-border;
+    selection: bg-primary/30 selection:text-foreground;
   }
   body {
     @apply bg-background text-foreground;
@@ -36,15 +37,38 @@
 }
 @layer components {
   .card-illustrative {
-    @apply bg-card border-2 border-border rounded-4xl shadow-soft hover:shadow-md transition-all duration-300 hover:-translate-y-1;
+    @apply bg-card border-2 border-border rounded-[2.5rem] shadow-soft hover:shadow-lg transition-all duration-300 hover:-translate-y-1;
   }
   .btn-soft {
-    @apply rounded-2xl px-6 py-2.5 font-semibold transition-all duration-200 active:scale-95 disabled:opacity-50;
+    @apply rounded-[1.25rem] px-6 py-2.5 font-bold transition-all duration-200 active:scale-95 disabled:opacity-50;
   }
   .input-rounded {
-    @apply rounded-2xl border-2 border-border bg-background px-4 py-2 focus:border-primary focus:ring-0 transition-colors;
+    @apply rounded-[1.25rem] border-2 border-border bg-background px-4 py-3 focus:border-primary focus:ring-0 transition-all outline-none;
+  }
+  .glass-panel {
+    @apply bg-white/70 dark:bg-black/70 backdrop-blur-xl border border-white/20 shadow-glass;
   }
   .font-hand {
     font-family: 'Patrick Hand', cursive;
   }
+  /* Staggered entrance animations */
+  .animate-slide-up-fade {
+    animation: slideUpFade 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+}
+@keyframes slideUpFade {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+/* Custom Prose Styles for previews */
+.prose-indigo {
+  --tw-prose-links: theme('colors.indigo.600');
+  --tw-prose-invert-links: theme('colors.indigo.400');
+  --tw-prose-bullets: theme('colors.indigo.400');
 }

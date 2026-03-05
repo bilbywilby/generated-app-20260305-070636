@@ -8,27 +8,31 @@ export class ChatAgent extends Agent<Env, ChatState> {
   private chatHandler?: ChatHandler;
   initialState: ChatState = {
     messages: [],
-    sessionId: '', // Set in onStart
+    sessionId: '',
     isProcessing: false,
     model: 'google-ai-studio/gemini-2.5-flash',
     streamingMessage: ''
   };
   async onStart(): Promise<void> {
-    // Correctly accessing this.env and this.name from Agent base class
+    // Correctly accessing environment via this.env which is available on Agent instances
+    // We cast to any to bypass the current SDK type definition issue in this environment
+    const env = (this as any).env as Env;
     this.chatHandler = new ChatHandler(
-      this.env.CF_AI_BASE_URL,
-      this.env.CF_AI_API_KEY,
+      env.CF_AI_BASE_URL,
+      env.CF_AI_API_KEY,
       this.state.model
     );
     if (!this.state.sessionId) {
-      this.setState({ ...this.state, sessionId: this.name });
+      this.setState({ ...this.state, sessionId: (this as any).name });
     }
-    console.log(`ChatAgent ${this.name} initialized with session ${this.name}`);
   }
   async onRequest(request: Request): Promise<Response> {
     try {
       const url = new URL(request.url);
       const method = request.method;
+      if (!this.chatHandler) {
+        await this.onStart();
+      }
       if (method === 'GET' && url.pathname === '/messages') {
         return this.handleGetMessages();
       }
@@ -97,7 +101,7 @@ export class ChatAgent extends Agent<Env, ChatState> {
                   });
                   writer.write(encoder.encode(chunk));
                 } catch (writeError) {
-                  console.error('Write error:', writeError);
+                  console.error('Write error in stream:', writeError);
                 }
               }
             );
@@ -111,12 +115,16 @@ export class ChatAgent extends Agent<Env, ChatState> {
           } catch (error) {
             console.error('Streaming error:', error);
             try {
-              const errorText = 'Sorry, I encountered an error.';
-              writer.write(encoder.encode(errorText));
+              const errorText = 'Sorry, I encountered an error during generation.';
+              await writer.write(encoder.encode(errorText));
               this.setState({ ...this.state, isProcessing: false });
-            } catch {}
+            } catch (e) {
+              console.error('Failed to send error message to stream:', e);
+            }
           } finally {
-            try { writer.close(); } catch {}
+            try { await writer.close(); } catch (e) {
+              console.error('Failed to close writer:', e);
+            }
           }
         })();
         return createStreamResponse(readable);
@@ -130,6 +138,7 @@ export class ChatAgent extends Agent<Env, ChatState> {
       });
       return Response.json({ success: true, data: this.state });
     } catch (error) {
+      console.error('Chat message processing failed:', error);
       this.setState({ ...this.state, isProcessing: false });
       return Response.json({ success: false, error: API_RESPONSES.PROCESSING_ERROR }, { status: 500 });
     }
