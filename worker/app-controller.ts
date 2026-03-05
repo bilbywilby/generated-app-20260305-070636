@@ -1,5 +1,6 @@
 import { DurableObject } from 'cloudflare:workers';
 import type { Env } from './core-utils';
+import type { SessionInfo } from './types';
 export interface Template {
   id: string;
   name: string;
@@ -27,6 +28,55 @@ export class AppController extends DurableObject<Env> {
   }
   private async saveList<T>(key: string, items: T[]): Promise<void> {
     await this.ctx.storage.put(key, items);
+  }
+  // --- Session Management ---
+  async addSession(sessionId: string, title?: string): Promise<void> {
+    const sessions = await this.getList<SessionInfo>('sessions');
+    const existing = sessions.find(s => s.id === sessionId);
+    if (existing) {
+      existing.lastActive = Date.now();
+    } else {
+      sessions.push({
+        id: sessionId,
+        title: title || `Drafting Session ${new Date().toLocaleDateString()}`,
+        createdAt: Date.now(),
+        lastActive: Date.now()
+      });
+    }
+    await this.saveList('sessions', sessions);
+  }
+  async updateSessionActivity(sessionId: string): Promise<void> {
+    const sessions = await this.getList<SessionInfo>('sessions');
+    const session = sessions.find(s => s.id === sessionId);
+    if (session) {
+      session.lastActive = Date.now();
+      await this.saveList('sessions', sessions);
+    }
+  }
+  async updateSessionTitle(sessionId: string, title: string): Promise<void> {
+    const sessions = await this.getList<SessionInfo>('sessions');
+    const session = sessions.find(s => s.id === sessionId);
+    if (session) {
+      session.title = title;
+      await this.saveList('sessions', sessions);
+    }
+  }
+  async removeSession(sessionId: string): Promise<boolean> {
+    const sessions = await this.getList<SessionInfo>('sessions');
+    const filtered = sessions.filter(s => s.id !== sessionId);
+    if (filtered.length === sessions.length) return false;
+    await this.saveList('sessions', filtered);
+    return true;
+  }
+  async listSessions(): Promise<SessionInfo[]> {
+    const sessions = await this.getList<SessionInfo>('sessions');
+    return sessions.sort((a, b) => b.lastActive - a.lastActive);
+  }
+  async clearAllSessions(): Promise<number> {
+    const sessions = await this.getList<SessionInfo>('sessions');
+    const count = sessions.length;
+    await this.ctx.storage.delete('sessions');
+    return count;
   }
   // --- Template Management ---
   async createTemplate(template: Omit<Template, 'id' | 'updatedAt'>): Promise<Template> {

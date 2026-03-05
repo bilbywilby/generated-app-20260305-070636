@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
-import { Mail, MessageSquare, Send, Sparkles, Save, ChevronLeft, Trash2, Loader2, Tag } from 'lucide-react';
+import { Mail, MessageSquare, Send, Sparkles, Save, ChevronLeft, Trash2, Loader2, Tag, Copy } from 'lucide-react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { chatService } from '@/lib/chat';
@@ -55,9 +55,8 @@ export default function DraftEditorPage() {
       if (response.success && response.data?.messages) {
         const lastMsg = response.data.messages[response.data.messages.length - 1];
         setAiHistory(prev => [...prev, { role: 'assistant', content: lastMsg.content }]);
-        // Automatically suggest incorporating the rewrite if it looks like a version
         if (lastMsg.content.length > 20) {
-           toast("AI has a suggestion. Apply it?", {
+           toast("AI suggestion ready", {
              action: { label: "Apply", onClick: () => setContent(lastMsg.content) }
            });
         }
@@ -72,6 +71,14 @@ export default function DraftEditorPage() {
     const matches = content.match(/\{\{([^}]+)\}\}/g);
     return matches ? Array.from(new Set(matches.map(m => m.replace(/\{\{|\}\}/g, '')))) : [];
   }, [content]);
+  const insertVariable = (v: string) => {
+    setContent(prev => prev + ` {{${v}}}`);
+    toast.info(`Inserted variable: ${v}`);
+  };
+  const copyToClipboard = () => {
+    navigator.clipboard.writeText(content);
+    toast.success("Draft copied to clipboard!");
+  };
   return (
     <AppLayout className="h-screen overflow-hidden">
       <div className="flex flex-col h-full bg-background border-l-2 border-border">
@@ -88,16 +95,16 @@ export default function DraftEditorPage() {
             />
           </div>
           <div className="flex items-center gap-3">
-            <Button variant="ghost" size="sm" className="btn-soft text-destructive" onClick={() => navigate('/drafts')}>
-              <Trash2 className="w-4 h-4 mr-2" /> Discard
+            <Button variant="ghost" size="sm" onClick={copyToClipboard} className="btn-soft">
+              <Copy className="w-4 h-4 mr-2" /> Copy
             </Button>
-            <Button 
-              className="btn-soft bg-primary text-white" 
+            <Button
+              className="btn-soft bg-primary text-white"
               disabled={saveMutation.isPending}
               onClick={() => saveMutation.mutate({ title, content, channel, status: 'draft' })}
             >
               {saveMutation.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
-              {saveMutation.isPending ? 'Saving...' : 'Save Draft'}
+              Save Draft
             </Button>
           </div>
         </header>
@@ -130,14 +137,18 @@ export default function DraftEditorPage() {
               <div className="space-y-2">
                 {variables.length > 0 ? (
                   variables.map(v => (
-                    <div key={v} className="flex items-center gap-2 p-2 rounded-xl bg-primary/5 border border-primary/10 text-xs font-medium text-primary">
+                    <button
+                      key={v}
+                      onClick={() => insertVariable(v)}
+                      className="w-full flex items-center gap-2 p-2 rounded-xl bg-primary/5 border border-primary/10 text-xs font-medium text-primary hover:bg-primary/10 transition-colors"
+                    >
                       <Tag className="w-3 h-3" />
                       {v}
-                    </div>
+                    </button>
                   ))
                 ) : (
-                  <div className="p-4 rounded-2xl bg-muted/50 border border-border text-xs italic text-muted-foreground">
-                    No variables detected. Use <code className="bg-muted px-1">{"{{name}}"}</code> to inject data.
+                  <div className="p-4 rounded-2xl bg-muted/50 border border-border text-xs italic text-muted-foreground text-center">
+                    No variables detected. Try adding <code>{"{{name}}"}</code>.
                   </div>
                 )}
               </div>
@@ -169,10 +180,10 @@ export default function DraftEditorPage() {
                 <div className="flex-1 overflow-y-auto space-y-4 pr-2">
                   <AnimatePresence>
                     {aiHistory.map((msg, i) => (
-                      <motion.div 
+                      <motion.div
                         initial={{ opacity: 0, y: 10, scale: 0.95 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
-                        key={i} 
+                        key={i}
                         className={cn(
                           "p-4 rounded-2xl text-sm leading-relaxed border",
                           msg.role === 'user' ? "bg-muted ml-8 border-border" : "bg-primary/5 mr-8 text-primary border-primary/10"
@@ -185,12 +196,6 @@ export default function DraftEditorPage() {
                   {isAiThinking && (
                     <div className="flex gap-2 items-center text-xs text-muted-foreground italic p-2">
                       <Loader2 className="w-3 h-3 animate-spin" /> Nexus is thinking...
-                    </div>
-                  )}
-                  {aiHistory.length === 0 && (
-                    <div className="text-center py-12 space-y-4 opacity-50 h-full flex flex-col justify-center">
-                      <Sparkles className="w-12 h-12 mx-auto text-primary" />
-                      <p className="font-medium">Need a tone shift or a quick rewrite? Just ask.</p>
                     </div>
                   )}
                 </div>
@@ -209,7 +214,7 @@ export default function DraftEditorPage() {
                       className="absolute right-1 top-1 h-8 w-8 rounded-xl bg-primary hover:bg-primary/90 text-white"
                       onClick={handleAiAsk}
                     >
-                      {isAiThinking ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+                      <Sparkles className="w-4 h-4" />
                     </Button>
                   </div>
                 </div>

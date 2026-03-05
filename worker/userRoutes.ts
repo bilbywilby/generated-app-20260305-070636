@@ -21,6 +21,36 @@ export function coreRoutes(app: Hono<{ Bindings: Env }>) {
     });
 }
 export function userRoutes(app: Hono<{ Bindings: Env }>) {
+    // Session Management API (Required for chatService)
+    app.get('/api/sessions', async (c) => {
+        const controller = getAppController(c.env);
+        const sessions = await controller.listSessions();
+        return c.json({ success: true, data: sessions });
+    });
+    app.post('/api/sessions', async (c) => {
+        const body = await c.req.json();
+        const controller = getAppController(c.env);
+        await controller.addSession(body.sessionId || crypto.randomUUID(), body.title);
+        return c.json({ success: true });
+    });
+    app.put('/api/sessions/:id/title', async (c) => {
+        const id = c.req.param('id');
+        const { title } = await c.req.json();
+        const controller = getAppController(c.env);
+        await controller.updateSessionTitle(id, title);
+        return c.json({ success: true });
+    });
+    app.delete('/api/sessions/:id', async (c) => {
+        const id = c.req.param('id');
+        const controller = getAppController(c.env);
+        const deleted = await controller.removeSession(id);
+        return c.json({ success: deleted });
+    });
+    app.delete('/api/sessions', async (c) => {
+        const controller = getAppController(c.env);
+        const deletedCount = await controller.clearAllSessions();
+        return c.json({ success: true, data: { deletedCount } });
+    });
     // Templates API
     app.get('/api/templates', async (c) => {
         const controller = getAppController(c.env);
