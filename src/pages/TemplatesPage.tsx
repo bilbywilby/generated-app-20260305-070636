@@ -6,7 +6,7 @@ import { Plus, Layout, Trash2, Edit3, Tag, Loader2 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { useNavigate } from 'react-router-dom';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -80,6 +80,7 @@ export default function TemplatesPage() {
             <DialogContent className="sm:max-w-lg rounded-4xl">
               <DialogHeader>
                 <DialogTitle className="text-2xl font-bold">Draft a New Template</DialogTitle>
+                <DialogDescription className="text-muted-foreground">Create a new reusable template for your brand communications. Supports dynamic variables like {'{{name}}'}, {'{{date}}'} for personalization across email, Slack, and SMS channels.</DialogDescription>
               </DialogHeader>
               <form onSubmit={handleCreate} className="space-y-6 pt-4">
                 <div className="space-y-2">
