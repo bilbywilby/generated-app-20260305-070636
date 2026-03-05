@@ -14,6 +14,8 @@ import '@/index.css'
 import { HomePage } from '@/pages/HomePage'
 import TemplatesPage from '@/pages/TemplatesPage';
 import DraftEditorPage from '@/pages/DraftEditorPage';
+import DraftsListPage from '@/pages/DraftsListPage';
+import SettingsPage from '@/pages/SettingsPage';
 const queryClient = new QueryClient();
 const router = createBrowserRouter([
   {
@@ -28,7 +30,7 @@ const router = createBrowserRouter([
   },
   {
     path: "/drafts",
-    element: <HomePage />, // Dashboard acts as drafts list for now
+    element: <DraftsListPage />,
     errorElement: <RouteErrorBoundary />,
   },
   {
@@ -38,7 +40,7 @@ const router = createBrowserRouter([
   },
   {
     path: "/settings",
-    element: <HomePage />,
+    element: <SettingsPage />,
     errorElement: <RouteErrorBoundary />,
   }
 ]);
