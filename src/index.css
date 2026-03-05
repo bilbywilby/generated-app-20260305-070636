@@ -28,7 +28,9 @@
   }
   * {
     @apply border-border;
-    selection: bg-primary/30 selection:text-foreground;
+  }
+  *::selection {
+    @apply bg-primary/30 text-foreground;
   }
   body {
     @apply bg-background text-foreground;
