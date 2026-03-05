@@ -79,7 +79,7 @@ function updateWranglerJsonc() {
 function runSetupCommands() {
     const commands = [
     "bun add react-markdown@^9.0.1",
-    "bun add lucide-react framer-motion clsx tailwind-merge"
+    "bun add lucide-react framer-motion clsx tailwind-merge react-markdown"
 ];
     
     if (commands.length === 0) {
